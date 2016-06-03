@@ -1,0 +1,23 @@
+{
+  "name": "lr-historian",
+  "version": "1.0.0",
+  "description": "Fetch and save real-time light rail location data from transloc",
+  "main": "index.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "start": "node setup.js && node run.js",
+    "test":  "standard && echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kyle Falconer",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.13.4",
+    "forever-monitor": "^1.7.0",
+    "pg": "^4.5.5",
+    "scribe-js": "^2.0.4",
+    "standard": "^7.1.1",
+    "unirest": "^0.5.0",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {}
+}
