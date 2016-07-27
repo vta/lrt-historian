@@ -2,6 +2,8 @@
 
 # Light Rail Historian
 
+Collects and stores realtime light rail geolocation data, like latitude, longitude, time, expected arrival times.
+
 Makes use of the [TransLoc API](https://market.mashape.com/transloc/openapi-1-2)
 
 
@@ -11,9 +13,10 @@ Make a copy of config.js.example, name it "config.js", replacing the values to m
 
 
 
+## Accessing the data
+Right now, SQL queries are the only way to explore the data being written to the database. Here are some common queries being used:
 
-## Pure SQL:
-
+```
 -- select the important bits
 select call_name, last_updated_on, lat, lng, heading, tracking_status, speed, route_id, segment_id from locations
 WHERE 
@@ -24,8 +27,9 @@ last_updated_on <= '2016-06-05 00:00:00' :: timestamp
 --AND speed > 80
 --ORDER BY speed DESC
 limit 10000;
+```
 
-
+```
 -- select original json data
 select data from locations
 WHERE 
@@ -36,18 +40,20 @@ last_updated_on <= '2016-06-05 00:00:00' :: timestamp
 --AND speed > 80
 --ORDER BY speed DESC
 limit 10000;
+```
 
 
 
-
--- delete all the things
-TRUNCATE arrival_estimates CASCADE;
-TRUNCATE locations CASCADE;
-
-
-
-
+```
 -- get stats about the locations table 
 SELECT 
 (SELECT COUNT(*) from locations) as locations_count, 
 (SELECT pg_size_pretty(pg_relation_size('locations'))) AS locations_size
+```
+
+```
+-- delete all the things
+-- USE WITH CAUTION!
+TRUNCATE arrival_estimates CASCADE;
+TRUNCATE locations CASCADE;
+```
