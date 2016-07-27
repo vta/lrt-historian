@@ -28,6 +28,7 @@ function setupLogFolders () {
     }
   }
   var mkdirpSync = function (dirpath) {
+    // http://stackoverflow.com/a/24311711/940217
     var parts = dirpath.split(path.sep)
     for ( var i = 1; i <= parts.length; i++) {
       mkdirSync(path.join.apply(null, parts.slice(0, i)))

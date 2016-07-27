@@ -1,0 +1,25 @@
+// make a copy of this file and name it "config.js", replacing the values to match your configuration
+
+var path = require('path')
+
+var config = {}
+
+config.TRANSLOC_API_KEY = '1u6SLOE...insert your key here...Tz6Td'
+config.UPDATE_INTERVAL = 3 * 1000 // 3 seconds
+
+config.AGENCY_ID = 255 // VTA
+
+config.HTTP_PROXY = 'http://localhost:3128'
+config.pgconnstr = 'postgres://lrhistorianadmin:password@localhost/lrthistorian'
+config.pguser = 'lrhistorianadmin'
+
+config.rollingLogSize = 5 * 1024 // 5 MB
+config.logs_dir = path.join('logs')
+config.forever_logs_dir = path.join('logs', 'forever')
+config.std_out_logs = path.join(config.logs_dir, 'debug.log')
+config.std_err_logs = path.join(config.logs_dir, 'exceptions.log')
+config.forever_logFile = path.join(config.logs_dir, 'log.log')
+config.forever_outFile = path.join(config.logs_dir, 'out.log')
+config.forever_errFile = path.join(config.logs_dir, 'err.log')
+
+module.exports = config
