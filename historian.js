@@ -1,7 +1,6 @@
 'use strict'
 
 const unirest = require('unirest')
-const fs = require('fs')
 const pg = require('pg')
 const config = require('./config')
 const logger = require('./log')
@@ -32,32 +31,32 @@ function getTransloc () {
       }
 
       var thisUpdateData = []
-      var new_data_count = 0
-      var old_data_count = 0
+      var newDataCount = 0
+      var oldDataCount = 0
       for (var i = 0; i < vehiclesData.length; i++) {
         var vehicleName = vehiclesData[i]['call_name']
         var currentUpdated = new Date(vehiclesData[i]['last_updated_on'])
         if (!(vehicleName in recentUpdated) || currentUpdated.getTime() > recentUpdated[vehicleName].getTime()) {
           logger.info('updating data for vehicle ' + vehicleName + ' at ' + currentUpdated)
-          new_data_count = new_data_count + 1
+          newDataCount = newDataCount + 1
           recentUpdated[vehicleName] = currentUpdated
           thisUpdateData.push(vehiclesData[i])
         } else {
           logger.info('got old data for vehicle ' + vehicleName + '; last updated at ' + recentUpdated[vehicleName])
-          old_data_count = old_data_count + 1
+          oldDataCount = oldDataCount + 1
         }
       }
-      logger.info('got new new data for ' + new_data_count + ' vehicle' + (new_data_count > 1 ? 's' : '') + ' and old data for ' + old_data_count + ' vehicle' + (old_data_count > 1 ? 's' : ''))
+      logger.info('got new new data for ' + newDataCount + ' vehicle' + (newDataCount > 1 ? 's' : '') + ' and old data for ' + oldDataCount + ' vehicle' + (oldDataCount > 1 ? 's' : ''))
       writeUpdatesToDB(thisUpdateData)
     })
 }
 
 function writeUpdatesToDB (datalist) {
-  var expected_rows_count = datalist.length
+  var expectedRowsCount = datalist.length
   // for (var i = 0; i < datalist.length; i++) {
-  //   expected_rows_count = expected_rows_count + datalist[i]['arrival_estimates'].length
+  //   expectedRowsCount = expectedRowsCount + datalist[i]['arrival_estimates'].length
   // }
-  logger.info('inserting ' + expected_rows_count + ' rows into the database')
+  logger.info('inserting ' + expectedRowsCount + ' rows into the database')
 
   var startTime = (new Date()).getTime()
   pg.connect(config.pgconnstr, function (err, client, done) {
@@ -65,7 +64,7 @@ function writeUpdatesToDB (datalist) {
       return logger.error('error fetching client from pool', err)
     }
 
-    function sql_callback (err, result) {
+    function sqlCallback (err, result) {
       if (err) {
         logger.error('error running query', err)
         return
@@ -75,31 +74,12 @@ function writeUpdatesToDB (datalist) {
 
     for (var i = 0; i < datalist.length; i++) {
       var d = datalist[i]
-      var a = null
       client.query('INSERT INTO locations ' +
       '(id, call_name, last_updated_on, lat, lng, heading, speed, tracking_status, route_id, segment_id, data, geom) ' +
       'VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, ST_SetSRID(ST_MakePoint($3, $4), 4326) )' +
       'RETURNING id, call_name',
         [d['call_name'], d['last_updated_on'], d['location']['lat'], d['location']['lng'], d['heading'], d['speed'], d['tracking_status'], d['route_id'], d['segment_id'], d],
-        function (err, result) {
-          if (err) {
-            logger.error('error running query', err)
-            return
-          }
-        // consolelog(JSON.stringify(result))
-        // var current_data = null
-        // for (var j = 0; j < datalist.length; j++) {
-        //  if (datalist[j]['call_name'] === result['rows'][0]['call_name']) {
-        //    current_data = datalist[j]
-        //  }
-        // }
-        // for (var j = 0; j < current_data['arrival_estimates'].length; j++) {
-        //  a = current_data['arrival_estimates'][j]
-        //  client.query('INSERT INTO arrival_estimates (route_id, arrival_at, stop_id, location_id) ' +
-        //  'VALUES ($1, $2, $3, $4)',
-        //    [a['route_id'], a['arrival_at'], a['stop_id'], result['rows'][0]['id']], sql_callback)
-        // }
-        })
+        sqlCallback)
     }
     done()
     var delta = (new Date()).getTime() - startTime
