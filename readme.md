@@ -54,6 +54,5 @@ SELECT
 ```
 -- delete all the things
 -- USE WITH CAUTION!
-TRUNCATE arrival_estimates CASCADE;
 TRUNCATE locations CASCADE;
 ```
