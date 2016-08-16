@@ -17,7 +17,8 @@
     "scribe-js": "^2.0.4",
     "standard": "^7.1.1",
     "unirest": "^0.5.0",
-    "winston": "^2.2.0"
+    "winston": "^2.2.0",
+    "xml-parser":"^1.2.1"
   },
   "devDependencies": {}
 }

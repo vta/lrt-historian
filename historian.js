@@ -4,6 +4,7 @@ const unirest = require('unirest')
 const pg = require('pg')
 const config = require('./config')
 const logger = require('./log')
+var parse = require('xml-parser');
 
 var recentUpdated = {}
 
@@ -50,6 +51,56 @@ function getTransloc () {
       writeUpdatesToDB(thisUpdateData)
     })
 }
+//This Function should pull data from the moovmanage api
+function getMoovManage () {
+  var Request = unirest.get('https://www.moovmanage.com/public_api/devices?api_key=' + config.BUS_API_KEY)
+
+  if (config.HTTP_PROXY) {
+    Request.proxy(config.HTTP_PROXY)
+  }
+
+
+  Request.header('Accept', 'application/xml')
+  .header('Content-Type', 'application/xml')
+    .end(function (result) {
+      if (result.error) {
+        logger.error(result.error)
+        return
+      }
+    //   logger.info(result.connection, result.status, result.headers, parseString(result.body, function (err, result) {
+ 
+ 
+  var obj = parse(result.body);
+
+  // obj.root.children.map(function(e){ e.children.map(function(e2){ e2.children.map(function(e3){ 
+  //   console.log(JSON.stringify(e2.attributes) +' : ' +JSON.stringify(e3.attributes)) 
+  // }) } ) })
+var devices = []
+obj.root.children.map(function(e){ e.children.map(function(e2){ e2.children.map(function(e3){ 
+  devices.push( {loc: e3.attributes, description: e2.attributes});
+ }) } ) })
+
+
+      var thisUpdateData = []
+      var newDataCount = 0
+      var oldDataCount = 0
+      for (var i = 0; i < devices.length; i++) {
+        var vehicleName = devices[i].description.id
+        var currentUpdated = new Date(devices[i].loc.time)
+        if (!(vehicleName in recentUpdated) || currentUpdated.getTime() > recentUpdated[vehicleName].getTime()) {
+          logger.info('updating data for vehicle ' + vehicleName + ' at ' + currentUpdated)
+          newDataCount = newDataCount + 1
+          recentUpdated[vehicleName] = currentUpdated
+          thisUpdateData.push(vehiclesData[i])
+        } else {
+          logger.info('got old data for vehicle ' + vehicleName + '; last updated at ' + recentUpdated[vehicleName])
+          oldDataCount = oldDataCount + 1
+        }
+      }
+      logger.info('got new new data for ' + newDataCount + ' vehicle' + (newDataCount > 1 ? 's' : '') + ' and old data for ' + oldDataCount + ' vehicle' + (oldDataCount > 1 ? 's' : ''))
+  //     // writeUpdatesToDB(thisUpdateData)
+    })
+}
 
 function writeUpdatesToDB (datalist) {
   var expectedRowsCount = datalist.length
@@ -88,5 +139,6 @@ function writeUpdatesToDB (datalist) {
 }
 
 (function () {
-  setInterval(getTransloc, config.UPDATE_INTERVAL)
+  setInterval(getMoovManage, config.UPDATE_INTERVAL)
 })()
+
